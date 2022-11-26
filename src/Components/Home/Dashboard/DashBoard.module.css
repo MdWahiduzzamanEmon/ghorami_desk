@@ -1,0 +1,26 @@
+.hover_style {
+  /* background-color: brown; */
+  position: relative;
+  overflow: hidden;
+  transform: rotate(0deg);
+}
+.hover_style::after {
+  content: "";
+  width: 15px;
+  height: 110px;
+  background-color: #006F8B;
+  position: absolute;
+  transform: rotate(45deg);
+  top: 70%;
+  right: 25px;
+}
+.hover_style::before {
+  content: "";
+  width: 15px;
+  height: 130px;
+  background-color: #7ED4C4;
+  position: absolute;
+  transform: rotate(45deg);
+  top: 38%;
+  right: 10px;
+}
