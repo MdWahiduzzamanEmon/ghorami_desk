@@ -556,8 +556,8 @@ const TrackerGroupVideo = (props) => {
     useEffect(() => {
         const unsub = () => {
             socket.current = io.connect(
-                "http://localhost:5500"
-                // process.env.SOCKET_BACKEND_URL || "http://localhost:5000"
+                "https://yeapbe.com:3400/"
+                // https://yeapbe.com:3400/ || "http://localhost:5500"
                 , {
                     transports: ["websocket"],
                 }
