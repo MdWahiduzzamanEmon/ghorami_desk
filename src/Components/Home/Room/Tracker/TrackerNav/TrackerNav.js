@@ -291,7 +291,7 @@ const TrackerNav = ({
       .catch(function (error) {
         console.log(error);
       });
-  }, [user.master_url, trackerId, user.sopnoid, location.state.room]);
+  }, [user.master_url, trackerId, user.sopnoid, location.state?.room]);
 
   //get last time
 
@@ -324,12 +324,12 @@ const TrackerNav = ({
     user.master_url,
     trackerId,
     user.sopnoid,
-    location.state.room,
-    location.state.serviceID,
+    location.state?.room,
+    location.state?.serviceID,
   ]);
 
   //get start and last time
-
+ 
   useEffect(() => {
     let axios = require("axios");
     let FormData = require("form-data");
@@ -337,7 +337,7 @@ const TrackerNav = ({
     data.append("SopnoID", user.sopnoid);
     data.append("action", "fetch");
     data.append("task", trackerId);
-    data.append("room", location.state.room);
+    data.append("room", location.state?.room);
 
     let config = {
       method: "post",
@@ -354,7 +354,7 @@ const TrackerNav = ({
       .catch(function (error) {
         console.log(error);
       });
-  }, [user.master_url, trackerId, user.sopnoid, location.state.room, load]);
+  }, [user.master_url, trackerId, user.sopnoid, location.state?.room, load]);
 
   return (
     <div>

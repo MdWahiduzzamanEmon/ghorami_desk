@@ -454,7 +454,7 @@
 import React, { useRef, useEffect, useState } from "react";
 import io from "socket.io-client";
 import Peer from "simple-peer";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Box, Button, Grid, Stack, Typography } from "@mui/material";
 // icons
 import { IoChatboxOutline as ChatIcon } from "react-icons/io5";
@@ -493,6 +493,8 @@ const TrackerGroupVideo = (props) => {
     const [loading, setLoading] = useState(true);
     const [localStream, setLocalStream] = useState(null);
     const navigate = useNavigate();
+    const location = useLocation();
+
     // const [micOn, setMicOn] = useState(true);
     const [showChat, setshowChat] = useState(true);
     const [share, setShare] = useState(false);
@@ -505,10 +507,8 @@ const TrackerGroupVideo = (props) => {
     const peersRef = useRef([]);
     const [allUserCount, setAllUserCount] = useState(0);
 
-    // const [videoActive, setVideoActive] = useState(true);
-
-    // const [msgs, setMsgs] = useState([]);
-    // const [msgText, setMsgText] = useState("");
+    const [isVideo, setIsVideo] = useState(true);
+    const [isAudio, setIsAudio] = useState(true);
     const localVideo = useRef();
 
     // user
@@ -556,13 +556,13 @@ const TrackerGroupVideo = (props) => {
     useEffect(() => {
         const unsub = () => {
             socket.current = io.connect(
-                "https://yeapbe.com:4250/"
-                // https://yeapbe.com:3400/ || "http://localhost:5500"
+                "http://localhost:5500"
+                // https://yeapbe.com:4250/ || "http://localhost:5500"
                 , {
                     transports: ["websocket"],
                 }
             );
-            if (user?.sopnoid)
+            if (user?.sopnoid) {
                 navigator.mediaDevices
                     .getUserMedia({
                         video: true,
@@ -638,10 +638,11 @@ const TrackerGroupVideo = (props) => {
                         });
 
                     });
+            }
+
         };
         return unsub();
     }, [createPeer, roomID, user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
-
 
     const addPeer = (incomingSignal, callerID, stream) => {
         const peer = new Peer({
@@ -663,8 +664,6 @@ const TrackerGroupVideo = (props) => {
 
     const [screenShare, setScreenShare] = useState(false);
     const [screenTrack, setScreenTrack] = React.useState(null);
-    const [isVideo, setIsVideo] = useState(true);
-    const [isAudio, setIsAudio] = useState(true);
 
     function shareScreen() {
         navigator.mediaDevices.getDisplayMedia({
@@ -701,7 +700,11 @@ const TrackerGroupVideo = (props) => {
     }
 
 
-
+    // stream.getTracks().forEach(function (track) {
+    //     if (track.readyState == 'live' && track.kind === 'video') {
+    //         track.stop();
+    //     }
+    // });
 
     const stopScreenShare = () => {
         setScreenShare(false);
@@ -720,8 +723,15 @@ const TrackerGroupVideo = (props) => {
 
     // // Toggle Video 
     function toggleVideo() {
-        setIsVideo(!isVideo);
-        localStream.getVideoTracks()[0].enabled = !isVideo;
+
+        if (isVideo) {
+            localStream.getVideoTracks()[0].enabled = false;
+            setIsVideo(false);
+
+        } else {
+            localStream.getVideoTracks()[0].enabled = true;
+            setIsVideo(true);
+        }
     }
 
     // // Toggle Audio
@@ -737,7 +747,19 @@ const TrackerGroupVideo = (props) => {
         peersRef.current.forEach((peer) => peer.peer.destroy());
         socket.current.disconnect();
         // history.push("/");
-        navigate(`/room/${roomID}`);
+        navigate(`/tracker/${roomID}`,
+            {
+                state: {
+                    room: location.state?.room,
+                    serviceID: location.state?.serviceID,
+                },
+            }
+        );
+        const tracks = localStream.getTracks();
+        tracks.forEach((track) => {
+            track.stop();
+        }
+        );
     }
 
     return (
@@ -852,10 +874,10 @@ const TrackerGroupVideo = (props) => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-2">
                                                 <div>
-                                                        <button
-                                                            className={
-                                                                isAudio ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
-                                                            }
+                                                    <button
+                                                        className={
+                                                            isAudio ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
+                                                        }
                                                         onClick={() => {
                                                             // const audio =
                                                             //     localVideo.current.srcObject.getAudioTracks()[0];
@@ -875,9 +897,9 @@ const TrackerGroupVideo = (props) => {
                                                 </div>
                                                 <div>
                                                     <button
-                                                            className={
-                                                                isVideo ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
-                                                            }
+                                                        className={
+                                                            isVideo ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
+                                                        }
                                                         onClick={() => {
                                                             // const videoTrack = localStream
                                                             //     .getTracks()
@@ -897,10 +919,10 @@ const TrackerGroupVideo = (props) => {
                                                     </button>
                                                 </div>
                                                 <div>
-                                                        <button
-                                                            className={
-                                                                !screenShare ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
-                                                            }
+                                                    <button
+                                                        className={
+                                                            !screenShare ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
+                                                        }
                                                         onClick={() => {
                                                             if (screenShare) {
                                                                 stopScreenShare();
@@ -952,15 +974,15 @@ const TrackerGroupVideo = (props) => {
                                                 </div>
                                                 <div>
                                                     <button
-                                                      
-                                                            className={
-                                                                showChat ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
-                                                            }
+
+                                                        className={
+                                                            showChat ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
+                                                        }
                                                         onClick={() => {
                                                             setshowChat(!showChat);
                                                         }}
                                                     >
-                                                            <UsersIcon />
+                                                        <UsersIcon />
                                                     </button>
                                                 </div>
                                             </div>
