@@ -731,7 +731,8 @@ const TrackerGroupVideo = (props) => {
         } else {
             localStream.getVideoTracks()[0].enabled = true;
             setIsVideo(true);
-        }
+        } 
+        
     }
 
     // // Toggle Audio
