@@ -556,7 +556,7 @@ const TrackerGroupVideo = (props) => {
     useEffect(() => {
         const unsub = () => {
             socket.current = io.connect(
-                "https://yeapbe.com:4250/"
+                "http://localhost:5500"
                 // https://yeapbe.com:4250/ || "http://localhost:5500"
                 , {
                     transports: ["websocket"],
@@ -680,24 +680,43 @@ const TrackerGroupVideo = (props) => {
                 setScreenShare(true);
                 let track = stream.getTracks()[0];
                 setScreenTrack(track)
+
+                localStream.addTrack(stream.getVideoTracks()[0]);
                 peersRef.current.forEach(peer => {
-                    peer.peer.replaceTrack(localStream.getVideoTracks()[0], track, localStream)
-
+                    peer.peer.replaceTrack(localStream.getVideoTracks()[0], stream.getVideoTracks()[0], localStream);
                 })
-                localVideo.current.srcObject = stream;
-                setLocalStream(stream);
-                stream.oninactive = () => {
+                localStream.removeTrack(localStream.getVideoTracks()[0]);
+                localVideo.current.srcObject = localStream;
+                setLocalStream(localStream);
+                track.onended = function () {
+                    // console.log("track ended");
                     setScreenShare(false);
-                    peersRef.current.forEach(peer => {
-                        peer.peer.replaceTrack(track, localStream.getVideoTracks()[0], localStream)
-                    })
-                    localVideo.current.srcObject = localStream;
+                    navigator.mediaDevices.getUserMedia({
+                        video: true,
+                        audio: true,
+                    }).then(stream => {
+                        localStream.addTrack(stream.getVideoTracks()[0]);
+                        peersRef.current.forEach(peer => {
+                            peer.peer.replaceTrack(localStream.getVideoTracks()[0], stream.getVideoTracks()[0], localStream);
+                        }
+                        )
+                        localStream.removeTrack(localStream.getVideoTracks()[0]);
+                        localVideo.current.srcObject = localStream;
+                        setLocalStream(localStream
+                        );
 
+                    })
                 }
 
+
             }
-        })
+        }).catch(err => {
+            console.log(err);
+
+        }
+        )
     }
+
 
 
     // stream.getTracks().forEach(function (track) {
@@ -709,16 +728,25 @@ const TrackerGroupVideo = (props) => {
     const stopScreenShare = () => {
         setScreenShare(false);
         navigator.mediaDevices.getUserMedia({
-            video: isVideo,
-            audio: isAudio,
+            video: true,
+            audio: true,
         }).then(stream => {
+            localStream.addTrack(stream.getVideoTracks()[0]);
             peersRef.current.forEach(peer => {
-                peer.peer.replaceTrack(screenTrack, localStream.getVideoTracks()[0], localStream)
-            })
-            setLocalStream(stream);
-            localVideo.current.srcObject = stream;
+                peer.peer.replaceTrack(localStream.getVideoTracks()[0], stream.getVideoTracks()[0], localStream);
+            }
+            )
+            localStream.removeTrack(localStream.getVideoTracks()[0]);
+            localVideo.current.srcObject = localStream;
+            setLocalStream(localStream
+            );
+
         })
+
+        // stop screenTrack 
         screenTrack.stop();
+
+
     }
 
     // // Toggle Video 
@@ -731,7 +759,7 @@ const TrackerGroupVideo = (props) => {
         } else {
             localStream.getVideoTracks()[0].enabled = true;
             setIsVideo(true);
-        } 
+        }
 
     }
 
@@ -784,7 +812,7 @@ const TrackerGroupVideo = (props) => {
                                     className="flex flex-col bg-darkBlue2 justify-between w-full"
                                 >
                                     <div
-                                        className="flex-shrink-0 overflow-y-scroll p-3"
+                                        className="flex-shrink-0 overflow-y-scroll p-2"
                                         style={{
                                             height: "calc(100vh - 128px)",
                                         }}
@@ -993,7 +1021,12 @@ const TrackerGroupVideo = (props) => {
                                 {showChat && (
                                     <motion.div
                                         layout
-                                        className="flex flex-col w-[15%] flex-shrink-0 border-l-2 border-lightGray bg-darkBlue1 h-full"
+                                        className="flex flex-col flex-shrink-0 border-l-2 border-lightGray bg-darkBlue1 h-full"
+
+                                        style={{
+                                            display: window.innerWidth < 768 ? "none" : "block",
+
+                                        }}
                                     >
                                         <div
                                             className="flex-shrink-0 overflow-y-scroll"
@@ -1024,6 +1057,9 @@ const TrackerGroupVideo = (props) => {
                                                         } flex flex-col w-full mt-2 h-full max-h-[80vh] overflow-y-scroll gap-3 p-1 
                                                        bg-slate-900 backdrop-blur border-b-2 border-gray
                                                         `}
+                                                    style={{
+                                                        scrollbarWidth: "thin",
+                                                    }}
                                                 >
                                                     <AnimatePresence>
                                                         <motion.div
