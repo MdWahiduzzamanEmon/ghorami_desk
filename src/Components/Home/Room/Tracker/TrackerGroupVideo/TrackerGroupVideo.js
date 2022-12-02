@@ -77,6 +77,7 @@ const TrackerGroupVideo = (props) => {
         const peer = new Peer({
             initiator: true,
             trickle: false,
+            config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
             stream,
         });
 
@@ -195,6 +196,7 @@ const TrackerGroupVideo = (props) => {
         const peer = new Peer({
             initiator: false,
             trickle: false,
+            config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
             stream,
         });
         peer.on("signal", (signal) => {
