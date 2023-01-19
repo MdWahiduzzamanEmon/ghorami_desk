@@ -11,6 +11,7 @@ const Routing = React.lazy(() => import("./Components/Routing/Routing.js"));
 function App() {
   return (
     <div>
+      
       <AuthProvider>
         <Suspense
           fallback={
