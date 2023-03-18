@@ -25,17 +25,7 @@ const PrivateRoute = ({ children }) => {
     location.search.length > 0 ? true : false
   );
 
-  useEffect(() => {
-    if (location.search.length > 0) {
-      axios.get("https://geolocation-db.com/json/").then((res) => {
-        setIp?.(res.data.IPv4);
-      });
-      setPageRefresh(!pageRefresh);
-      dataCall();
-    }
-  }, [location.search, pageRefresh]);
-
-  const dataCall = () => {
+  const dataCall =React.useCallback( () => {
     const formData = new FormData();
     formData.append("SopnoID", sopnoID);
     formData.append("action_type", name);
@@ -54,7 +44,19 @@ const PrivateRoute = ({ children }) => {
       .catch((err) => {
         console.log(err);
       });
-  };
+  }, [ip, name, sopnoID]);
+
+  useEffect(() => {
+    if (location.search.length > 0) {
+      axios.get("https://geolocation-db.com/json/").then((res) => {
+        setIp?.(res.data.IPv4);
+      });
+      setPageRefresh(!pageRefresh);
+      dataCall();
+    }
+  }, [dataCall, location?.search, pageRefresh, setPageRefresh]);
+
+  
 
   // localStorage.setItem("user", JSON.stringify("fyvgb"));
   const user = JSON.parse(localStorage.getItem("user"));
@@ -72,14 +74,14 @@ const PrivateRoute = ({ children }) => {
     return children;
   } else if (location.search.length > 0 && sopnoID && name === "room") {
     return roomID ? (
-      <Navigate to={`/${name}/${roomID}`} />
+      <Navigate to={`/${name}/${roomID}`} state={{ from: location.pathname }} />
     ) : (
-      <Navigate to={`/${name}`} />
+      <Navigate to={`/${name}`} state={{ from: location.pathname }} />
     );
   } else if (location.search.length > 0 && sopnoID && name === "message") {
-    return <Navigate to={`/${name}`} />;
+    return <Navigate to={`/${name}`} state={{ from: location.pathname }} />;
   } else {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" state={{ from: location.pathname }} />;
   }
 };
 

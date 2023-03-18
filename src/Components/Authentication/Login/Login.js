@@ -21,6 +21,7 @@ import swal from "sweetalert";
 // import { useCookies } from "react-cookie";
 import axios from "axios";
 import CryptoJS from "crypto-js";
+
 const Login = () => {
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");

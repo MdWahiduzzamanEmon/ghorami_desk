@@ -20,7 +20,7 @@ const MeetGridCard = ({ user, micActive, peer }) => {
             );
             videoRef.current.srcObject = stream;
         });
-    }, []);
+    }, [peer]);
     
     return (
         <motion.div

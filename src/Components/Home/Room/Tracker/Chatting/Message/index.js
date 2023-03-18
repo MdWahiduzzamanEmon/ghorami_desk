@@ -81,7 +81,7 @@ function Message(props) {
    let text = message?.cm_details;
    let characterCount = 0;
    characterCount = text?.split("\n").length - 1;
-    console.log(message);
+    // console.log(message);
    //  console.log("data loop");
    for (let i = 0; i < characterCount; i++) {
      //  console.log("ch count" + characterCount);

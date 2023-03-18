@@ -31,8 +31,20 @@ const Assigner = ({ trackerId, admin, twoCompApiLoad, setTwoCompApiLoad }) => {
         formData
       )
       .then((res) => {
-        // console.log(res.data[0]);
-        setAssignerList(res.data);
+      
+        // remove duplicate 
+        const unique = res.data.filter(
+          (thing, index, self) =>
+            index ===
+            self.findIndex(
+              (t) =>
+                t.as_gid === thing.as_gid &&  
+                t.as_name === thing.as_name
+            )
+        );
+        
+        setAssignerList(unique);
+
         setLoader(false);
       })
       .catch((err) => {

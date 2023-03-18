@@ -41,6 +41,7 @@ const TrackerGroupVideo = (props) => {
     const [localStream, setLocalStream] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
+    const {admin} = location.state;
 
     // const [micOn, setMicOn] = useState(true);
     const [showChat, setshowChat] = useState(true);
@@ -77,7 +78,7 @@ const TrackerGroupVideo = (props) => {
         const peer = new Peer({
             initiator: true,
             trickle: false,
-            config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+            // config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
             stream,
         });
 
@@ -104,7 +105,8 @@ const TrackerGroupVideo = (props) => {
     useEffect(() => {
         const unsub = () => {
             socket.current = io.connect(
-                "https://yeapbe.com:4250/"
+                // "https://yeapbe.com:4250/"
+                "http://localhost:4001/"
                 // https://yeapbe.com:4250/ || "http://localhost:5500"
                 , {
                     transports: ["websocket"],
@@ -152,6 +154,7 @@ const TrackerGroupVideo = (props) => {
 
                         socket.current.on("user joined", (payload) => {
                             // console.log(payload);
+                            alert(payload);
                             const peer = addPeer(payload.signal, payload.callerID, stream);
                             peersRef.current.push({
                                 peerID: payload.callerID,
@@ -396,7 +399,8 @@ const TrackerGroupVideo = (props) => {
                                                     muted
                                                     autoPlay
                                                     controls={false}
-                                                    className="h-full w-full object-cover rounded-lg"
+                                                    //flip video
+                                                    className="h-full w-full object-cover rounded-lg transform scale-x-[-1]"
                                                 />
                                                 {!isVideo && (
                                                     <div className="absolute top-0 left-0 bg-black h-full w-full flex items-center justify-center">
@@ -452,10 +456,12 @@ const TrackerGroupVideo = (props) => {
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-2">
                                                 <div>
+                                                    {console.log(admin)}
                                                     <button
                                                         className={
                                                             isAudio ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
                                                         }
+                                                        disabled={admin ? false : true}
                                                         onClick={() => {
                                                             // const audio =
                                                             //     localVideo.current.srcObject.getAudioTracks()[0];

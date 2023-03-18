@@ -23,7 +23,7 @@ const FileCopyDownloadModal = ({ item }) => {
   const [open2, setOpen2] = React.useState(false);
   const handleOpen2 = () => setOpen2(true);
   const handleClose2 = () => setOpen2(false);
-  console.log(item);
+  // console.log(item);
   // === use for download ===
   const onButtonClick = (file) => {
      console.log(file)
