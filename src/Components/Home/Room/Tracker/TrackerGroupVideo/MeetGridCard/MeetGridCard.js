@@ -10,7 +10,7 @@ import { BsPinFill as PinActiveIcon } from "react-icons/bs";
 import { useRef } from "react";
 
 const MeetGridCard = ({ user, peer }) => {
-    const [micActive, setMicActive] = useState(true);
+    // const [micActive, setMicActive] = useState(true);
     const [pin, setPin] = useState(false);
     const videoRef = useRef();
     const [videoActive, setVideoActive] = useState(true);
@@ -19,8 +19,19 @@ const MeetGridCard = ({ user, peer }) => {
             setVideoActive(
                 stream.getTracks().find((track) => track.kind === "video")?.enabled
             );
-            videoRef.current.srcObject = stream;
+            videoRef.current.srcObject = stream
+            console.log( stream.getTracks().find((track) => track.kind === "video")?.enabled);
         });
+
+        peer?.on("track", (track, stream) => {
+            console.log(track);
+            console.log(stream);
+        });
+
+        return () => {
+            peer?.destroy();
+        }
+        
     }, [peer]);
     // console.log(user);
     return (
@@ -70,7 +81,7 @@ const MeetGridCard = ({ user, peer }) => {
             <div className="bg-slate-800/70 backdrop-blur border-gray border-2  py-1 px-3 cursor-pointer rounded-md text-white text-xs">
                                                         {user?.name}
                                                     </div>
-        <button
+        {/* <button
           className={`${
             micActive
               ? "bg-blue border-transparent"
@@ -89,7 +100,7 @@ const MeetGridCard = ({ user, peer }) => {
             }}
         >
           {micActive ? <MicOnIcon /> : <MicOffIcon />}
-        </button>
+        </button> */}
       </div>
             
         </motion.div>

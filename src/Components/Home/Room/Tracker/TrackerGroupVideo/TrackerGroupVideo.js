@@ -351,21 +351,10 @@ const TrackerGroupVideo = (props) => {
 
         if (isVideo) {
                 //localstream off for video 
-                // localStream.getVideoTracks()[0].enabled = false;
+                localStream.getVideoTracks()[0].enabled = false;
                 setIsVideo(false);
-                localStream.getVideoTracks()[0].stop()
-                //add some black video track
-                let blackVideoTrack = localStream.addTrack(new MediaStreamTrack({ kind: 'video' }));
-                peersRef.current.forEach(peer => {
-                    peer.peer.replaceTrack(localStream.getVideoTracks()[0], blackVideoTrack, localStream);
-                }
-                )
-                localStream.removeTrack(localStream.getVideoTracks()[0]);
-                localVideo.current.srcObject = localStream;
-                setLocalStream(localStream
-                );
-                 
-               
+                localStream.getVideoTracks()[0].stop();
+                
         } else {
             localStream.getVideoTracks()[0].enabled = true;
             setIsVideo(true);
@@ -524,7 +513,7 @@ const TrackerGroupVideo = (props) => {
                                                 </div>
                                             </motion.div>
                                             {peers?.map((peer) => {
-                                                // console.log(peer)
+                                                console.log(peer)
                                                 return (
                                                     <MeetGridCard
                                                     key={peer?.peerID}

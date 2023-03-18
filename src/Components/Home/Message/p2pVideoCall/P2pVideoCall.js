@@ -67,7 +67,7 @@ socket.current.emit("joinCall", {
       setCaller(data.from);
       setCallerSignal(data.signal);
     })
-  }, []);
+  }, [user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
 
   function callPeer(id) {
     const peer = new Peer({
