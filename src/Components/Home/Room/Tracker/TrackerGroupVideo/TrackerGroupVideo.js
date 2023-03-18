@@ -41,9 +41,9 @@ const TrackerGroupVideo = (props) => {
     const [localStream, setLocalStream] = useState(null);
     const navigate = useNavigate();
     const location = useLocation();
-    const {admin} = location.state;
+    const {admin} = location?.state || {};
 
-    // const [micOn, setMicOn] = useState(true);
+    const [micOn, setMicOn] = useState(true);
     const [showChat, setshowChat] = useState(true);
     const [share, setShare] = useState(false);
     // const [joinSound] = useState(new Audio(joinSFX));
@@ -78,7 +78,24 @@ const TrackerGroupVideo = (props) => {
         const peer = new Peer({
             initiator: true,
             trickle: false,
-            // config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
+            config: { iceServers: [ {
+                urls: "stun:openrelay.metered.ca:80",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:80",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:443",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:443?transport=tcp",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                }] },
             stream,
         });
 
@@ -101,12 +118,51 @@ const TrackerGroupVideo = (props) => {
         return peer;
     }, [user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
 
+    const addPeer = useCallback((incomingSignal, callerID, stream) => {
+        const peer = new Peer({
+            initiator: false,
+            trickle: false,
+            config: { iceServers: [ {
+                urls: "stun:openrelay.metered.ca:80",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:80",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:443",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                },
+                {
+                urls: "turn:openrelay.metered.ca:443?transport=tcp",
+                username: "openrelayproject",
+                credential: "openrelayproject",
+                }] },
+            stream,
+        });
+        peer.on("signal", (signal) => {
+            socket.current.emit("returning signal", { signal, callerID,user: user?.sopnoid
+                ? {
+                    uid: user?.sopnoid,
+                    email: user?.uemail,
+                    name: user?.uname,
+                    photoURL: user?.userpic,
+                }
+                : null, });
+        });
+        // joinSound.play();
+        peer.signal(incomingSignal);
+        return peer;
+    }, [user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
+
 
     useEffect(() => {
         const unsub = () => {
             socket.current = io.connect(
                 // "https://yeapbe.com:4250/"
-                "http://localhost:4001/"
+                "http://localhost:5500/"
                 // https://yeapbe.com:4250/ || "http://localhost:5500"
                 , {
                     transports: ["websocket"],
@@ -133,10 +189,13 @@ const TrackerGroupVideo = (props) => {
                                 }
                                 : null,
                         });
+                       
                         socket.current.on("all users", (users) => {
                             setAllUserCount(users.length);
+                            // console.log(users);
                             const peers = [];
                             users.forEach((user) => {
+                                // console.log(user);
                                 const peer = createPeer(user.userId, socket.current.id, stream);
                                 peersRef.current.push({
                                     peerID: user.userId,
@@ -154,7 +213,7 @@ const TrackerGroupVideo = (props) => {
 
                         socket.current.on("user joined", (payload) => {
                             // console.log(payload);
-                            alert(payload);
+                            // alert(payload);
                             const peer = addPeer(payload.signal, payload.callerID, stream);
                             peersRef.current.push({
                                 peerID: payload.callerID,
@@ -193,22 +252,8 @@ const TrackerGroupVideo = (props) => {
 
         };
         return unsub();
-    }, [createPeer, roomID, user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
+    }, [addPeer, createPeer, roomID, user?.sopnoid, user?.uemail, user?.uname, user?.userpic]);
 
-    const addPeer = (incomingSignal, callerID, stream) => {
-        const peer = new Peer({
-            initiator: false,
-            trickle: false,
-            config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:global.stun.twilio.com:3478?transport=udp' }] },
-            stream,
-        });
-        peer.on("signal", (signal) => {
-            socket.current.emit("returning signal", { signal, callerID });
-        });
-        // joinSound.play();
-        peer.signal(incomingSignal);
-        return peer;
-    };
     // console.log(peers);
 
     // let peer = addPeer(incomingSignal, callerId, stream);
@@ -300,20 +345,49 @@ const TrackerGroupVideo = (props) => {
 
 
     }
-
+    
     // // Toggle Video 
     function toggleVideo() {
 
         if (isVideo) {
-            localStream.getVideoTracks()[0].enabled = false;
-            setIsVideo(false);
-
+                //localstream off for video 
+                // localStream.getVideoTracks()[0].enabled = false;
+                setIsVideo(false);
+                localStream.getVideoTracks()[0].stop()
+                //add some black video track
+                let blackVideoTrack = localStream.addTrack(new MediaStreamTrack({ kind: 'video' }));
+                peersRef.current.forEach(peer => {
+                    peer.peer.replaceTrack(localStream.getVideoTracks()[0], blackVideoTrack, localStream);
+                }
+                )
+                localStream.removeTrack(localStream.getVideoTracks()[0]);
+                localVideo.current.srcObject = localStream;
+                setLocalStream(localStream
+                );
+                 
+               
         } else {
             localStream.getVideoTracks()[0].enabled = true;
             setIsVideo(true);
+           
+            navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true,
+            }).then(stream => {
+                localStream.addTrack(stream.getVideoTracks()[0]);
+                peersRef.current.forEach(peer => {
+                    peer.peer.replaceTrack(localStream.getVideoTracks()[0], stream.getVideoTracks()[0], localStream);
+                }
+                )
+                localStream.removeTrack(localStream.getVideoTracks()[0]);
+                localVideo.current.srcObject = localStream;
+                setLocalStream(localStream
+                );
+    
+            })
         }
-
     }
+
 
     // // Toggle Audio
     function toggleAudio() {
@@ -322,27 +396,34 @@ const TrackerGroupVideo = (props) => {
     }
 
     // // Hanging up the call
-    function hangUp() {
-        // const audio = new Audio(leaveSFX);
-        // audio.play();
-        peersRef.current.forEach((peer) => peer.peer.destroy());
-        socket.current.disconnect();
-        // history.push("/");
-        navigate(`/tracker/${roomID}`,
-            {
-                state: {
-                    room: location.state?.room,
-                    serviceID: location.state?.serviceID,
-                },
+    const hangUp = useCallback(() => 
+        {
+            // const audio = new Audio(leaveSFX);
+            // audio.play();
+            peersRef.current.forEach((peer) => peer.peer.destroy());
+            socket.current.disconnect();
+            // history.push("/");
+            navigate(`/tracker/${roomID}`,
+                {
+                    state: {
+                        room: location.state?.room,
+                        serviceID: location.state?.serviceID,
+                    },
+                }
+            );
+            const tracks = localStream.getTracks();
+            tracks.forEach((track) => {
+                track.stop();
             }
-        );
-        const tracks = localStream.getTracks();
-        tracks.forEach((track) => {
-            track.stop();
-        }
-        );
-    }
+            );
+            setLocalStream(null);
+            setPeers([]);
+            setScreenShare(false);
+            setScreenTrack(null);
+        }, [navigate, roomID, location.state?.room, location.state?.serviceID, localStream]
+    );
 
+    // console.log("screenShare", isVideo);
     return (
         <>
             {user && (
@@ -352,7 +433,7 @@ const TrackerGroupVideo = (props) => {
                             <div className="flex justify-center items-center h-screen">
                                 <Spinner />
                             </div>
-                        </div>
+                        </div> 
                     ) : (
                         user && (
                             <motion.div
@@ -442,26 +523,32 @@ const TrackerGroupVideo = (props) => {
                                                     </div>
                                                 </div>
                                             </motion.div>
-                                            {peers.map((peer) => (
-                                                // console.log(peer),
-                                                <MeetGridCard
+                                            {peers?.map((peer) => {
+                                                // console.log(peer)
+                                                return (
+                                                    <MeetGridCard
                                                     key={peer?.peerID}
-                                                    user={peer.user}
+                                                    user={peer?.user}
                                                     peer={peer?.peer}
                                                 />
-                                            ))}
+                                                )
+                                               
+})}
                                         </motion.div>
                                     </div>
                                     <div className="w-full h-16 bg-darkBlue1 border-t-2 border-lightGray p-3">
                                         <div className="flex items-center justify-between">
                                             <div className="flex gap-2">
                                                 <div>
-                                                    {console.log(admin)}
+                                                    {/* {console.log(admin)} */}
                                                     <button
                                                         className={
-                                                            isAudio ? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl"
+                                                            isAudio? "bg-orange-500 backdrop-blur border-gray border-2  p-2 cursor-pointer rounded-xl text-white text-xl" : "bg-slate-800/70 cursor-pointer backdrop-blur border-gray border-2  p-2  rounded-xl text-white text-xl"
                                                         }
-                                                        disabled={admin ? false : true}
+                                                        // title={
+                                                        //     admin ? "Mute/Unmute" : "You are not an admin"
+                                                        // }
+                                                        // disabled={admin ? false : true}
                                                         onClick={() => {
                                                             // const audio =
                                                             //     localVideo.current.srcObject.getAudioTracks()[0];
@@ -638,7 +725,7 @@ const TrackerGroupVideo = (props) => {
                                                                 {user.uname || "Anonymous"}
                                                             </span>
                                                         </motion.div>
-                                                        {peers.map((user) => (
+                                                        {peers?.map((user) => (
                                                             <motion.div
                                                                 layout
                                                                 initial={{ x: 100, opacity: 0 }}
@@ -651,14 +738,14 @@ const TrackerGroupVideo = (props) => {
                                                             >
                                                                 <img
                                                                     src={
-                                                                        user.user.photoURL ||
+                                                                        user?.user?.photoURL ||
                                                                         "https://parkridgevet.com.au/wp-content/uploads/2020/11/Profile-300x300.png"
                                                                     }
-                                                                    alt={user.user.name || "Anonymous"}
+                                                                    alt={user?.user?.name || "Anonymous"}
                                                                     className="block w-8 h-8 aspect-square rounded-full mr-2"
                                                                 />
                                                                 <span className="font-medium text-sm">
-                                                                    {user.user.name || "Anonymous"}
+                                                                    {user?.user?.name || "Anonymous"}
                                                                 </span>
                                                             </motion.div>
                                                         ))}
@@ -778,4 +865,4 @@ const TrackerGroupVideo = (props) => {
     );
 };
 
-export default TrackerGroupVideo;
+export default React.memo(TrackerGroupVideo);

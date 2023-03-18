@@ -4,6 +4,7 @@ import { AiOutlineReload } from "react-icons/ai";
 import SearchIcon from "@mui/icons-material/Search";
 import parse from "html-react-parser";
 import backGroundChat from "../../Vendors/Dashboard-img/message_back.jpg";
+import VideocamIcon from '@mui/icons-material/Videocam';
 import {
   Grid,
   ListItem,
@@ -27,6 +28,7 @@ import axios from "axios";
 import useAuth from "../../../Hooks/useAuth";
 import DetailsComp from "./DetailsComp/DetailsComp";
 import UserListComp from "./UserListComp/UserListComp";
+import { useNavigate } from "react-router-dom";
 // import useSound from "use-sound";
 // import msgSend from "../../../Components/Vendors/COMCell_Message sent (ID 1313)_BSB.mp3";
 
@@ -78,7 +80,7 @@ const Message = () => {
   const [userSearchText, setUserSearchText] = React.useState("");
   const [joinFunc, setJoinFunc] = React.useState(null);
   const [socketId, setSocketId] = React.useState("");
-
+const navigate = useNavigate()
   //click to scroll the chat in mobile view
   const myRef = useRef(null);
 
@@ -88,7 +90,7 @@ const Message = () => {
     socket.on("connect", () => {
       alert("connected successfully with socket");
       setSocketId(socket.id);
-      console.log("connected successfully with socket", socket.id);
+      // console.log("connected successfully with socket", socket.id);
     });
     if (joinFunc) {
       socket.emit("join", joinFunc);
@@ -560,6 +562,11 @@ const Message = () => {
                 </span>
 
                 <Box>
+                  <Button onClick={()=>{
+                    navigate("/p2p");
+                  }}>
+                   <VideocamIcon/>
+                  </Button>
                   <Button
                     variant="outlined"
                     sx={[

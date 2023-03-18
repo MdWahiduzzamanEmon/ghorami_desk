@@ -5,6 +5,7 @@ import { BsFillArrowUpCircleFill } from "react-icons/bs";
 import Register from "./../Authentication/Register/Register";
 import PrivateRoute from "../PrivateRoute/PrivateRoute.js";
 import TrackerGroupVideo from "../Home/Room/Tracker/TrackerGroupVideo/TrackerGroupVideo.js";
+import P2pVideoCall from "../Home/Message/p2pVideoCall/P2pVideoCall.js";
 const Home = React.lazy(() => import("../Home/Home.js"));
 const Ganttt = React.lazy(() => import("../Home/Gantt/Gantt.js"));
 const Room = React.lazy(() => import("../Home/Room/Room.js"));
@@ -70,6 +71,7 @@ const Routing = () => {
           <Route path="/calender" element={<Calender />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/trackerGroupVideo/:roomID" element={<TrackerGroupVideo />} />
+          <Route path="/p2p" element={<P2pVideoCall />} />
         </Route>
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />

@@ -123,7 +123,7 @@ const Tracker = () => {
 
   //admin check restriction
   const [admin, setAdmin] = useState(false);
-  
+
   useEffect(() => {
     let axios = require("axios");
     const formData = new FormData();
@@ -143,7 +143,9 @@ const Tracker = () => {
         // matching with shopnoId
         const check = res.data.find((item) => item?.as_gid === user?.sopnoid);
         // console.log(check);
-        if (check) {
+        if (check===undefined) {
+          setAdmin(false);
+        } else {
           setAdmin(true);
         }
 

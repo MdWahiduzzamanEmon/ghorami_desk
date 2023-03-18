@@ -9,19 +9,20 @@ import { BsPin as PinIcon } from "react-icons/bs";
 import { BsPinFill as PinActiveIcon } from "react-icons/bs";
 import { useRef } from "react";
 
-const MeetGridCard = ({ user, micActive, peer }) => {
+const MeetGridCard = ({ user, peer }) => {
+    const [micActive, setMicActive] = useState(true);
     const [pin, setPin] = useState(false);
     const videoRef = useRef();
     const [videoActive, setVideoActive] = useState(true);
     useEffect(() => {
-        peer.on("stream", (stream) => {
+        peer?.on("stream", (stream) => {
             setVideoActive(
-                stream.getTracks().find((track) => track.kind === "video").enabled
+                stream.getTracks().find((track) => track.kind === "video")?.enabled
             );
             videoRef.current.srcObject = stream;
         });
     }, [peer]);
-    
+    // console.log(user);
     return (
         <motion.div
             layout
@@ -33,7 +34,7 @@ const MeetGridCard = ({ user, micActive, peer }) => {
                     className={`${pin
                             ? "bg-blue border-transparent"
                             : "bg-slate-800/70 backdrop-blur border-gray"
-                        } md:border-2 border-[1px] aspect-square md:p-2.5 p-1.5 cursor-pointer md:rounded-xl rounded-lg text-white md:text-xl text-lg`}
+                        } md:border-2 border-[1px] aspect-square md:p-2.5 p-1.5 cursor-pointer md:rounded-xl rounded-lg text-white md:text-xl text-lg `}
                     onClick={() => {
                         setPin(!pin);
                         window.scrollTo({
@@ -49,8 +50,9 @@ const MeetGridCard = ({ user, micActive, peer }) => {
                 ref={videoRef}
                 autoPlay
                 controls={false}
-                className="h-full w-full object-cover rounded-lg"
+                className="h-full w-full object-cover rounded-lg transform scale-x-[-1]"
             />
+            
             {!videoActive && (
                 <div className="absolute top-0 left-0 bg-lightGray h-full w-full flex items-center justify-center">
                     <img
@@ -63,26 +65,33 @@ const MeetGridCard = ({ user, micActive, peer }) => {
                     />
                 </div>
             )}
-            {/* <div className="absolute bottom-4 right-4">
+            
+            <div className="absolute bottom-4 left-4 z-30 flex items-center justify-center gap-2">
+            <div className="bg-slate-800/70 backdrop-blur border-gray border-2  py-1 px-3 cursor-pointer rounded-md text-white text-xs">
+                                                        {user?.name}
+                                                    </div>
         <button
           className={`${
             micActive
               ? "bg-blue border-transparent"
               : "bg-slate-800/70 backdrop-blur border-gray"
           } md:border-2 border-[1px] aspect-square opacity-80 md:p-2.5 p-1.5 cursor-default md:rounded-xl rounded-lg text-white md:text-xl text-lg`}
-          // onClick={() => {
-          //   setMicOn(!micActive);
-          //   joinSound.play();
-          // }}
+            onClick={() => {
+                peer.on("stream", (stream) => {
+                    stream.getTracks().forEach((track) => {
+                        if (track.kind === "audio") {
+                            track.enabled = !track.enabled;
+                        }
+                    });
+                }
+                );
+                setMicActive(!micActive);
+            }}
         >
           {micActive ? <MicOnIcon /> : <MicOffIcon />}
         </button>
-      </div> */}
-            <div className="absolute bottom-4 left-4">
-                <div className="bg-slate-800/70 backdrop-blur border-gray border-2  py-1 px-3 cursor-pointer rounded-md text-white text-xs">
-                    {user?.name || "Anonymous"}
-                </div>
-            </div>
+      </div>
+            
         </motion.div>
     );
 };
